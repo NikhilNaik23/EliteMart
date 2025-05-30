@@ -1,29 +1,48 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  addUser,
+  deleteUser,
+  updateUser,
+  fetchUsers, // ✅ make sure this exists in your adminSlice
+} from "../../redux/slices/adminSlice";
 
 const UserManagement = () => {
-  const users = [
-    {
-      _id: 123456,
-      name: "John Doe",
-      email: "john@example.com",
-      role: "admin",
-    },
-  ];
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { user } = useSelector((state) => state.auth);
+  const { users, loading, error } = useSelector((state) => state.admin);
+
+  useEffect(() => {
+    if (user && user.role === "admin") {
+      dispatch(fetchUsers());
+    } else {
+      navigate("/");
+    }
+  }, [user, dispatch, navigate]);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     role: "customer",
   });
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+    dispatch(addUser(formData)).then(() => {
+      dispatch(fetchUsers()); // ✅ refresh the user list
+    });
+
     setFormData({
       name: "",
       email: "",
@@ -31,17 +50,26 @@ const UserManagement = () => {
       role: "customer",
     });
   };
+
   const handleRoleChange = (userId, newRole) => {
-    console.log({ id: userId, role: newRole });
+    dispatch(updateUser({ id: userId, role: newRole }));
   };
+
   const handleDeleteUser = (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      console.log(`user with ${userId} is deleted`);
+      dispatch(deleteUser(userId)).then(() => {
+        dispatch(fetchUsers()); // ✅ update list after deletion
+      });
     }
   };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <p className="text-2xl font-bold mb-4">User Management</p>
+      {loading && <p>Loading...</p>}
+      {error && <p className="text-red-500">Error: {error}</p>}
+
+      {/* Add New User Form */}
       <div className="p-6 rounded-lg mb-6">
         <h3 className="text-lg font-bold mb-4">Add New User</h3>
         <form onSubmit={handleSubmit}>
@@ -87,7 +115,7 @@ const UserManagement = () => {
               className="w-full p-2 border rounded"
             >
               <option value="customer">Customer</option>
-              <option value={"admin"}>Admin</option>
+              <option value="admin">Admin</option>
             </select>
           </div>
           <button
@@ -98,6 +126,8 @@ const UserManagement = () => {
           </button>
         </form>
       </div>
+
+      {/* User Table */}
       <div className="overflow-x-auto shadow-md sm:rounded-lg">
         <table className="min-w-full text-left text-gray-500">
           <thead className="bg-gray-100 text-xs uppercase text-gray-700">
@@ -110,7 +140,7 @@ const UserManagement = () => {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user._id} className="border-b hover:bg-gray-50">
+              <tr key={user._id || user.email} className="border-b hover:bg-gray-50">
                 <td className="p-4 font-medium text-gray-900 whitespace-nowrap">
                   {user.name}
                 </td>

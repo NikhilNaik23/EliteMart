@@ -1,18 +1,46 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import signup from "../assets/register.webp";
+import { registerUser } from "../redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { mergeCart } from "../redux/slices/cartSlice";
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, guestId } = useSelector((state) => state.auth);
+  const { cart } = useSelector((state) => state.cart);
+
+  //Get redirect parameter and check if it's checkout or something else
+  const redirect = new URLSearchParams(location.search).get("redirect") || "/";
+  const isCheckoutRedirect = redirect.includes("checkout");
+
+  useEffect(() => {
+    if (user) {
+      if (cart?.products.length > 0 && guestId) {
+        dispatch(mergeCart({ guestId, user })).then(() => {
+          navigate(isCheckoutRedirect ? "/checkout" : "/");
+        });
+      } else {
+        navigate(isCheckoutRedirect ? "/checkout" : "/");
+      }
+    }
+  },[user,guestId,cart,navigate,isCheckoutRedirect,dispatch]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("User Registered:", { name, email, password });
+    dispatch(registerUser({ name, email, password }));
   };
   return (
     <div className="flex ">
       <div className="w-full flex md:w-1/2 flex-col justify-center items-center p-8 md:p-12 ">
-        <form onSubmit={handleSubmit} className="w-full max-w-md bg-white p-8 rounded-lg border shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-md bg-white p-8 rounded-lg border shadow-sm"
+        >
           <div className="flex justify-center mb-6">
             <h2 className="text-xl font-medium">ElitéMart</h2>
           </div>
@@ -67,7 +95,7 @@ const Signup = () => {
           </button>
           <p className="mt-6 text-center text-sm">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-500">
+            <Link to={`/login/redirect=${encodeURIComponent(redirect)}`} className="text-blue-500">
               Login
             </Link>
           </p>
