@@ -65,13 +65,19 @@ cd EliteMart
 npm install
 npm run dev
 ```
-- Make sure to configure your .env file:
+- Make sure to configure your .env file in root:
 
 ```bash
 PORT=5000
 MONGO_URI=your_mongo_connection_string
-JWT_SECRET=your_secret_key
-PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
+JWT_SECRET=your_jwt_secret_key
+ENV=development
+
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+CLIENT_URL=http://localhost:5173
 ```
 
 ### 3. Frontend Setup
@@ -82,4 +88,9 @@ npm install
 npm start
 ```
 
+- Configure your .env file in the frontend directory:
+```bash
+VITE_BACKEND_URL=http://localhost:5000
+VITE_PAYPAL_CLIENT_ID=your_paypal_sandbox_client_id
+```
 
