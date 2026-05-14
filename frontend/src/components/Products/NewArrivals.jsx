@@ -12,6 +12,7 @@ const NewArrivals = () => {
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   const [newArrivals, setNewArrivals] = useState([]);
+  const arrivalList = Array.isArray(newArrivals) ? newArrivals : [];
 
   useEffect(() => {
     const fetchNewArrivals = async () => {
@@ -19,7 +20,7 @@ const NewArrivals = () => {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/products/new-arrivals`
         );
-        setNewArrivals(response.data);
+        setNewArrivals(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.log(error);
       }
@@ -121,7 +122,7 @@ const NewArrivals = () => {
           onMouseLeave={handleMouseUpOrLeave}
           onMouseMove={handleMouseMove}
         >
-          {newArrivals.map((product) => (
+          {arrivalList.map((product) => (
             <div
               key={product._id}
               className="min-w-[100%] sm:min-w-[50%] lg:min-w-[30%] relative"
